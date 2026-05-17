@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.cqrs.events.UpdatePointsEvent;
 import com.cqrs.tableretriever.listener.ScoreEventBatchListener;
-import com.cqrs.tableretriever.model.PointsTable;
+import com.cqrs.table.model.PointsTable;
 import com.cqrs.tableretriever.processor.ScoreEventsProcessor;
 import com.cqrs.tableretriever.repository.PointsTableRepository;
 import com.cqrs.tableretriever.service.DatastoreTableService;

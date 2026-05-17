@@ -1,0 +1,10 @@
+description = 'Command-side service: accepts score commands and publishes UpdatePointsEvent to Kafka'
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
+	testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+}

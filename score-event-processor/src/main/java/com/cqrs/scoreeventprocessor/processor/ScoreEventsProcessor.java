@@ -1,6 +1,6 @@
 package com.cqrs.scoreeventprocessor.processor;
 
-import com.cqrs.scoreeventprocessor.model.PointsTable;
+import com.cqrs.table.model.PointsTable;
 import com.cqrs.scoreeventprocessor.service.DatastoreTableService;
 import com.cqrs.scoreeventprocessor.util.ReconstructTableUtil;
 import java.util.Optional;

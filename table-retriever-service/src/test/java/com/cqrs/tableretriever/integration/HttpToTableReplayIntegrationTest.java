@@ -8,8 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.cqrs.tableretriever.controller.TableDetailsController;
-import com.cqrs.tableretriever.model.PointsTable;
-import com.cqrs.tableretriever.model.Standing;
+import com.cqrs.table.model.PointsTable;
+import com.cqrs.table.model.Standing;
 import com.cqrs.tableretriever.service.TableRetrieveService;
 import java.util.List;
 import java.util.Optional;

@@ -3,8 +3,11 @@ WORKDIR /workspace
 
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle ./gradle
-COPY cqrs-events ./cqrs-events
+COPY league-table-events ./league-table-events
+COPY league-table-domain ./league-table-domain
 COPY score-event-processor ./score-event-processor
+COPY league-table-domain/build.gradle ./league-table-domain/build.gradle
+COPY scorekeeper/build.gradle ./scorekeeper/build.gradle
 COPY table-retriever-service/build.gradle ./table-retriever-service/build.gradle
 
 RUN chmod +x gradlew \

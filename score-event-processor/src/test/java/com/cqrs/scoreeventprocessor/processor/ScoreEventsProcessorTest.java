@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.cqrs.scoreeventprocessor.model.PointsTable;
-import com.cqrs.scoreeventprocessor.model.Standing;
+import com.cqrs.table.model.PointsTable;
+import com.cqrs.table.model.Standing;
 import com.cqrs.scoreeventprocessor.service.DatastoreTableService;
 import com.cqrs.scoreeventprocessor.util.ReconstructTableUtil;
 import java.util.Optional;

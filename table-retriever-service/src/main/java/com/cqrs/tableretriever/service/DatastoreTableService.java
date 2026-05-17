@@ -1,6 +1,6 @@
 package com.cqrs.tableretriever.service;
 
-import com.cqrs.tableretriever.model.PointsTable;
+import com.cqrs.table.model.PointsTable;
 import com.cqrs.tableretriever.repository.PointsTableRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

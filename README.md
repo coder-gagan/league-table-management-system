@@ -1,32 +1,36 @@
 # League Table Management System
 
-A **CQRS** reference implementation for football league tables: score updates flow in as immutable events, the **command** path materialises current standings into MongoDB, and the **query** path serves reads— including point-in-time and matchday snapshots—without overloading the write model.
+A **CQRS** reference implementation for football league tables: clients send **commands** to record results without waiting on downstream processing; events flow through Kafka; **projectors** materialise standings into MongoDB; the **query** service serves reads—including point-in-time and matchday snapshots.
 
-This repository is designed to demonstrate **system design** (separation of concerns, event-driven boundaries, deployable modules) and **implementation craft** (domain rules, replay, caching, tests). Module-level READMEs cover internals; start here for the big picture.
+This repository demonstrates **system design** (command/query/event boundaries, non-blocking writes, deployable modules) and **implementation craft** (domain rules, replay, caching, tests). Module-level READMEs cover internals; start here for the big picture.
 
 ---
 
 ## CQRS in this system
 
-| Concern | Module | Responsibility |
-|--------|--------|----------------|
-| **Shared contract** | [`cqrs-events`](cqrs-events/) | `UpdatePointsEvent` / `Record` — the Kafka message shape both sides agree on |
-| **Command (write)** | [`score-event-processor`](score-event-processor/) | Consume `scoreUpdate` → apply domain logic → persist **current** table to MongoDB |
-| **Query (read)** | [`table-retriever-service`](table-retriever-service/) | HTTP API for latest table; **event replay** from Kafka for historical views; Redis for expensive replays |
+| Role | Module | Responsibility |
+|------|--------|----------------|
+| **Command** | [`scorekeeper`](scorekeeper/) | Accept `POST /score`, validate, map to `UpdatePointsEvent`, **publish to Kafka** and return—clients are not blocked on table projection |
+| **Integration contract** | [`league-table-events`](league-table-events/) | `UpdatePointsEvent` / `Record` — wire format on `scoreUpdate` |
+| **Domain** | [`league-table-domain`](league-table-domain/) | Standings model, ranking sort, event → table projection |
+| **Event processor** | [`score-event-processor`](score-event-processor/) | Consume `scoreUpdate` → apply rules → persist **current** table to MongoDB (write-side projector) |
+| **Query** | [`table-retriever-service`](table-retriever-service/) | HTTP API for latest table; **Kafka replay** for historical views; Redis cache |
 
-Kafka is the **system of record** for match results. MongoDB holds a **materialised read/write projection** of “table as of now.” The query service can rebuild any past view by replaying events—an intentional CQRS pattern for temporal queries without polluting the command path.
+Kafka is the **durable log** of match results. MongoDB holds **materialised projections** (“table as of now”). The query service can rebuild past views by replaying the log—without pushing that work onto the command API.
 
 ```mermaid
 flowchart LR
-  subgraph external [External]
-    SK[Scorekeeper / producer]
+  subgraph command [Command side]
+    Client([Client / Admin])
+    SK[scorekeeper]
+    Client -->|POST /score| SK
   end
 
   subgraph bus [Event bus]
-    K[(Kafka topic: scoreUpdate)]
+    K[(Kafka: scoreUpdate)]
   end
 
-  subgraph command [Command side]
+  subgraph projectors [Event processors]
     SEP[score-event-processor]
     MDB[(MongoDB)]
     SEP --> MDB
@@ -34,22 +38,25 @@ flowchart LR
 
   subgraph query [Query side]
     TRS[table-retriever-service]
-    REDIS[(Redis cache)]
+    REDIS[(Redis)]
+    API([HTTP consumers])
     TRS --> REDIS
     TRS --> MDB
+    TRS --> API
   end
 
-  subgraph clients [Clients]
-    API[HTTP consumers]
-  end
-
-  SK --> K
+  SK -->|async publish| K
   K --> SEP
   K --> TRS
-  TRS --> API
 ```
 
-**Typical flow:** a match finishes → producer publishes `UpdatePointsEvent` → command service updates MongoDB → query service (a) keeps its projection in sync via the same topic and (b) answers `GET /table/{id}` from MongoDB; for “table after matchday 5” it replays Kafka and caches the result.
+**Typical flow:** match result posted to scorekeeper → events on `scoreUpdate` → score-event-processor (and query listener) update MongoDB → clients read via `GET /table/{id}` or replay endpoints.
+
+### Why scorekeeper is the command side
+
+In strict CQRS, the **command** accepts intent to change state and returns without owning the read model. Scorekeeper does exactly that in CQRS mode (`feature.cqrsmode=true`): it transforms HTTP payloads into events and uses `KafkaTemplate.send`—**non-blocking** from the caller’s perspective—while processors catch up asynchronously.
+
+[`score-event-processor`](score-event-processor/) is **not** the command service; it is an **event consumer / projector** that applies the same events to MongoDB. Naming it “command” was misleading and has been corrected across this repo.
 
 ---
 
@@ -57,8 +64,10 @@ flowchart LR
 
 | Module | Docs | Port (local) |
 |--------|------|--------------|
-| Shared events | [cqrs-events/README.md](cqrs-events/README.md) | — (library) |
-| Command service | [score-event-processor/README.md](score-event-processor/README.md) | 8080 |
+| Command API | [scorekeeper/README.md](scorekeeper/README.md) | 8081 |
+| Event contract | [league-table-events/README.md](league-table-events/README.md) | — (library) |
+| Domain | [league-table-domain/README.md](league-table-domain/README.md) | — (library) |
+| Event processor | [score-event-processor/README.md](score-event-processor/README.md) | 8080 |
 | Query service | [table-retriever-service/README.md](table-retriever-service/README.md) | 8083 |
 
 ---
@@ -66,10 +75,10 @@ flowchart LR
 ## Technology choices
 
 - **Java 17**, **Spring Boot 3.4**, **Gradle** multi-project build
-- **Apache Kafka** — durable event log (`scoreUpdate`)
-- **MongoDB** — document store for `PointsTable` / `Standing`
+- **Apache Kafka** — event log (`scoreUpdate`)
+- **MongoDB** — `PointsTable` / `Standing` projections
 - **Redis** — cache for replay-heavy query endpoints
-- **Docker Compose** — Zookeeper, Kafka, MongoDB, Redis, both services with health checks
+- **Docker Compose** — full stack with health checks
 
 ---
 
@@ -81,10 +90,11 @@ flowchart LR
 make up
 ```
 
-Brings up infrastructure and both services. Verify:
+Verify:
 
 ```bash
-curl http://localhost:8080/actuator/health   # command
+curl http://localhost:8081/ping              # command (scorekeeper)
+curl http://localhost:8080/actuator/health   # event processor
 curl http://localhost:8083/ping              # query
 ```
 
@@ -94,10 +104,20 @@ curl http://localhost:8083/ping              # query
 ./gradlew test
 ```
 
+**End-to-end smoke test** (requires running stack):
+
+```bash
+make up
+make smoke-test
+```
+
+Posts a result to scorekeeper, then polls the query API until the projected table shows the expected points.
+
 **Run on the host** (infra in Docker, apps via Gradle):
 
 ```bash
 make infra
+./gradlew :scorekeeper:bootRun
 ./gradlew :score-event-processor:bootRun
 ./gradlew :table-retriever-service:bootRun
 ```
@@ -109,19 +129,19 @@ make down          # keep data volumes
 make down-clean    # remove volumes
 ```
 
-See module READMEs for API examples, package layout, and design notes.
-
 ---
 
 ## Design highlights
 
-1. **Event-sourced reads, materialised writes** — The command side only needs “apply event → save snapshot.” Historical queries replay the log on the query side, keeping write paths simple and read models flexible.
+1. **Commands decoupled from projection** — Scorekeeper publishes and returns; processors and query paths consume at their own pace.
 
-2. **Shared domain kernel** — `ReconstructTableUtil` encodes ranking rules (points, goal difference, goals scored, goals conceded) in one place per service; `cqrs-events` keeps the wire contract stable.
+2. **Event-sourced reads, materialised writes** — Historical queries replay Kafka on the query side; processors maintain “latest” snapshots in MongoDB.
 
-3. **Independent deployables** — Each service is a bootable JAR and Docker image; `cqrs-events` is compiled in, not deployed alone.
+3. **Shared event contract** — `league-table-events` keeps publishers and consumers aligned.
 
-4. **Operational ergonomics** — Makefile targets, Compose health checks, and Actuator/`/ping` endpoints support local demos and interviews.
+4. **DRY domain rules** — `league-table-domain` owns ranking sort and table reconstruction used by all services.
+
+5. **Independent deployables** — Each service is a bootable JAR and Docker image.
 
 ---
 
@@ -132,13 +152,9 @@ See module READMEs for API examples, package layout, and design notes.
 ├── build.gradle / settings.gradle
 ├── docker-compose.yml
 ├── Makefile
-├── cqrs-events/                 # shared event types
-├── score-event-processor/       # command side
-└── table-retriever-service/     # query side
+├── league-table-events/         # Kafka contract (UpdatePointsEvent, Record)
+├── league-table-domain/         # standings, ranking, projection
+├── scorekeeper/                 # command (CQRS write API)
+├── score-event-processor/       # Kafka → MongoDB projector
+└── table-retriever-service/     # query (HTTP + replay)
 ```
-
----
-
-## Context in a larger CQRS platform
-
-In a full platform, a **scorekeeper** (or similar) service publishes to `scoreUpdate`; this repo owns **table materialisation and retrieval** only. That boundary keeps the league-table bounded context small, testable, and easy to reason about in isolation—while still showing how command/query split plays out in production-shaped code (Kafka, MongoDB, cache, containers).

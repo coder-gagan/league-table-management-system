@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
-import com.cqrs.tableretriever.model.PointsTable;
+import com.cqrs.table.model.PointsTable;
 import com.cqrs.tableretriever.service.TableRetrieveService;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

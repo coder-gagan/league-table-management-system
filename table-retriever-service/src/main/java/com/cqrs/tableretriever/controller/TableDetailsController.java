@@ -1,6 +1,6 @@
 package com.cqrs.tableretriever.controller;
 
-import com.cqrs.tableretriever.model.PointsTable;
+import com.cqrs.table.model.PointsTable;
 import com.cqrs.tableretriever.service.TableRetrieveService;
 import java.time.Duration;
 import java.time.Instant;

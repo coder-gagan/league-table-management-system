@@ -40,16 +40,26 @@ subprojects {
 	}
 }
 
-configure(subprojects.findAll { it.name == 'cqrs-events' }) {
+configure(subprojects.findAll { it.name in ['league-table-events', 'league-table-domain'] }) {
 	apply plugin: 'java-library'
 }
 
-configure(subprojects.findAll { it.name != 'cqrs-events' }) {
+configure(subprojects.findAll { it.name == 'league-table-domain' }) {
+	dependencies {
+		testImplementation 'org.springframework.boot:spring-boot-starter-test'
+		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	}
+	tasks.named('test') {
+		useJUnitPlatform()
+	}
+}
+
+configure(subprojects.findAll { it.name != 'league-table-events' && it.name != 'league-table-domain' }) {
 	apply plugin: 'org.springframework.boot'
 	apply plugin: 'io.spring.dependency-management'
 
 	dependencies {
-		implementation project(':cqrs-events')
+		implementation project(':league-table-domain')
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
 		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	}

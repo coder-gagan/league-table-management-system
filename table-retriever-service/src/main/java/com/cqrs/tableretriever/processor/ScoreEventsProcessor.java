@@ -1,7 +1,7 @@
 package com.cqrs.tableretriever.processor;
 
 import com.cqrs.events.UpdatePointsEvent;
-import com.cqrs.tableretriever.model.PointsTable;
+import com.cqrs.table.model.PointsTable;
 import com.cqrs.tableretriever.service.DatastoreTableService;
 import com.cqrs.tableretriever.util.ReconstructTableUtil;
 import java.util.Optional;

@@ -2,7 +2,7 @@ package com.cqrs.tableretriever.service;
 
 import com.cqrs.events.UpdatePointsEvent;
 import com.cqrs.tableretriever.listener.ScoreEventRetriever;
-import com.cqrs.tableretriever.model.PointsTable;
+import com.cqrs.table.model.PointsTable;
 import com.cqrs.tableretriever.util.ReconstructTableUtil;
 import java.time.ZonedDateTime;
 import java.util.List;

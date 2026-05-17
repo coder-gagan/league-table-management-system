@@ -1,0 +1,6 @@
+description = 'League table domain: standings model, ranking rules, and event projection'
+
+dependencies {
+	api project(':league-table-events')
+	compileOnly 'org.springframework.data:spring-data-mongodb'
+}

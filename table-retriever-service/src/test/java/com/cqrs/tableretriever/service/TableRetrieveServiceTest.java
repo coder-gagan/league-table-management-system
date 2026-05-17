@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.cqrs.events.UpdatePointsEvent;
 import com.cqrs.tableretriever.listener.ScoreEventRetriever;
-import com.cqrs.tableretriever.model.PointsTable;
+import com.cqrs.table.model.PointsTable;
 import com.cqrs.tableretriever.support.MatchEventFixtures;
 import com.cqrs.tableretriever.util.ReconstructTableUtil;
 import java.time.ZoneId;
@@ -76,7 +76,7 @@ class TableRetrieveServiceTest {
     PointsTable table = tableRetrieveService.getPointsTableAtInstant("league-1", instant);
 
     assertThat(table.getStandings())
-        .extracting(com.cqrs.tableretriever.model.Standing::getTeamName)
+        .extracting(com.cqrs.table.model.Standing::getTeamName)
         .contains("Arsenal", "Chelsea");
     verify(scoreEventRetriever).getEventsPriorToTimestamp("league-1", instant);
   }

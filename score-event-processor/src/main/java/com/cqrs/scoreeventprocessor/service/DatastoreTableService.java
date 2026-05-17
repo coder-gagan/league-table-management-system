@@ -1,6 +1,6 @@
 package com.cqrs.scoreeventprocessor.service;
 
-import com.cqrs.scoreeventprocessor.model.PointsTable;
+import com.cqrs.table.model.PointsTable;
 import com.cqrs.scoreeventprocessor.repository.PointsTableRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

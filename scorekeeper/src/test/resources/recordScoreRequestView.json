@@ -1,0 +1,26 @@
+{
+  "scoreRecords": [
+    {
+      "tableId": "1234",
+      "homeTeam": "Gagan",
+      "homeTeamMatchNumber": 1,
+      "awayTeam": "Akshay",
+      "awayTeamMatchNumber": 1,
+      "homeTeamGoals": 1,
+      "awayTeamGoals": 5,
+      "timeStamp": "2025-01-03T15:45:00+00:00",
+      "gameweek": 4
+    },
+    {
+      "tableId": "1234",
+      "homeTeam": "Ameya",
+      "homeTeamMatchNumber": 2,
+      "awayTeam": "Shivam",
+      "awayTeamMatchNumber": 2,
+      "homeTeamGoals": 3,
+      "awayTeamGoals": 3,
+      "timeStamp": "2025-01-04T15:45:00+00:00",
+      "gameweek": 4
+    }
+  ]
+}

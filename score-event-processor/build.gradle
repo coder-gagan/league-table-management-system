@@ -1,4 +1,4 @@
-description = 'Command-side service: consumes score update events from Kafka and persists league tables to MongoDB'
+description = 'Kafka consumer: projects scoreUpdate events into MongoDB league tables'
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'

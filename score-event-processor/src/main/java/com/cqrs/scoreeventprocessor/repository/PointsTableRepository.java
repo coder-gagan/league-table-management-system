@@ -1,6 +1,6 @@
 package com.cqrs.scoreeventprocessor.repository;
 
-import com.cqrs.scoreeventprocessor.model.PointsTable;
+import com.cqrs.table.model.PointsTable;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;

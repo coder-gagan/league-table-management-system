@@ -1,5 +1,7 @@
 rootProject.name = 'league-table-management-system'
 
-include 'cqrs-events'
+include 'league-table-events'
+include 'league-table-domain'
+include 'scorekeeper'
 include 'score-event-processor'
 include 'table-retriever-service'

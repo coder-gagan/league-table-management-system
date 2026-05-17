@@ -6,8 +6,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.cqrs.scoreeventprocessor.listener.ScoreEventBatchListener;
-import com.cqrs.scoreeventprocessor.model.PointsTable;
-import com.cqrs.scoreeventprocessor.model.Standing;
+import com.cqrs.table.model.PointsTable;
+import com.cqrs.table.model.Standing;
 import com.cqrs.scoreeventprocessor.processor.ScoreEventsProcessor;
 import com.cqrs.scoreeventprocessor.repository.PointsTableRepository;
 import com.cqrs.scoreeventprocessor.service.DatastoreTableService;
